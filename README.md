@@ -22,7 +22,7 @@ Then list all variables in the px files:
 # to be done
 ```
 
-# Error
+# Error handling
 
 The script reports HTTP statuses if not 200:
 
