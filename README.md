@@ -19,7 +19,7 @@ Start with catalog script:
 
 Then list all variables in the px files:
 ```
-# to be done
+./px_variables.sh < px.txt
 ```
 
 # Error handling
