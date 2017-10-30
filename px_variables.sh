@@ -16,7 +16,8 @@ do
 
   if [ -e "$output" ]
   then
-    echo "Skipping: curl $output"
+    # echo "Skipping: curl $output"
+    true
   else
     STATUSCODE=$(curl --silent --output /dev/null --write-out "%{http_code}" "$url")
     if test $STATUSCODE -ne 200
@@ -28,9 +29,7 @@ do
     fi
   fi
 
-  # only outputs codes
-  cat "$output" | jq --raw-output '.variables[].code' > "$output.variables"
-
-  # todo: values as well
+  # code + values, tab-separated
+  cat "$output" | jq --raw-output '.variables[]|(.code + "\t" + (.values|join("\t")))' > "$output.variables" || echo "Error: $output"
 
 done < "/dev/stdin"
