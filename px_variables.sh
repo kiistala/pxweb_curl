@@ -1,19 +1,36 @@
 #!/bin/bash
 
 TARGETDIR='data'
-mkdir "$TARGETDIR"
+[[ -d "$TARGETDIR" ]] || mkdir -pv "$TARGETDIR"
 
 while read url
 do
   filename="${url##*/}"
+  host_and_path="${url%$filename}"
+  path="${host_and_path#*://*/}"
 
-  STATUSCODE=$(curl --silent --output /dev/null --write-out "%{http_code}" "$url")
-  if test $STATUSCODE -ne 200
+  # create directory if it does not exist already
+  [[ -d "$TARGETDIR/$path" ]] || mkdir -pv "$TARGETDIR/$path"
+
+  output="$TARGETDIR/$path/$filename"
+
+  if [ -e "$output" ]
   then
-    # use stderr to display http errors
-    echo "Fail: $url $STATUSCODE" >&2
+    echo "Skipping: curl $output"
   else
-    curl --silent --output "data/$filename" "$url"
+    STATUSCODE=$(curl --silent --output /dev/null --write-out "%{http_code}" "$url")
+    if test $STATUSCODE -ne 200
+    then
+      # use stderr to display http errors
+      echo "Fail: $url $STATUSCODE" >&2
+    else
+      curl --silent --output "$output" "$url"
+    fi
   fi
+
+  # only outputs codes
+  cat "$output" | jq --raw-output '.variables[].code' > "$output.variables"
+
+  # todo: values as well
 
 done < "/dev/stdin"
